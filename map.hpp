@@ -281,7 +281,9 @@ namespace ft
 			value_compare(key_compare c) : comp(c) {}
 		public:
 			bool operator()(const value_type& x, const value_type& y) const
-			{return comp(x.first, y.first);}
+			{
+				return comp(x.first, y.first);
+			}
 	};
 
 

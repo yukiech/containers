@@ -21,7 +21,7 @@ void	ft_vector();
 void	ft_map();
 float   ft_round(double var);
 
-int main(int argc, char** argv)
+int main()
 {
 	ft_banner();
 	ft_vector();
