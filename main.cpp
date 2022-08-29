@@ -10,9 +10,16 @@
 #include <chrono>
 using namespace std::chrono;
 
+#include <cstdio>
+#include <ctime>
+#include <time.h>
+#include <math.h>
+
+
 void	ft_banner();
 void	ft_vector();
 void	ft_map();
+float   ft_round(double var);
 
 int main(int argc, char** argv)
 {
@@ -34,21 +41,19 @@ void	ft_vector()
 
 	// Test push_back
 
-	auto ft_push_back = high_resolution_clock::now();
+	std::clock_t ft_push_back = std::clock();
 	for (int i = 0; i < 1000; i++)
 	{
 		ft_vector_int.push_back(i);
 	}
-	auto ft_push_back2 = high_resolution_clock::now();
-	auto ft_push_back_diff = duration_cast<microseconds>(ft_push_back2 - ft_push_back);
+	double ft_push_back_diff = ( std::clock() - ft_push_back ) / (double) CLOCKS_PER_SEC;
 
-	auto std_push_back = high_resolution_clock::now();
+	std::clock_t std_push_back = std::clock();
 	for (int i = 0; i < 1000; i++)
 	{
 		std_vector_int.push_back(i);
 	}
-	auto std_push_back2 = high_resolution_clock::now();
-	auto  std_push_back_diff = duration_cast<microseconds>(std_push_back2 - std_push_back);
+	double std_push_back_diff = ( std::clock() - std_push_back ) / (double) CLOCKS_PER_SEC;
 	
 	int i = 0;
 	int result = 0;
@@ -64,11 +69,213 @@ void	ft_vector()
 		std::cout << FRED("KO");
 	else
 		std::cout << FGRN("OK");
-	std::cout << " | Duration : FT = " << ft_push_back_diff.count() << " | STD = " << std_push_back_diff.count() << " | Diff = " << float(ft_push_back_diff.count()) / float(std_push_back_diff.count()) << " | ";
-	if (ft_push_back_diff.count() / std_push_back_diff.count() <= 20)
+	std::cout << " | Duration : FT =  " << ft_round(ft_push_back_diff) << " | STD = " << ft_round(std_push_back_diff) << " | Diff =  " << (int)(ft_push_back_diff / std_push_back_diff) << " | ";
+	if (ft_push_back_diff / std_push_back_diff <= 20)
 		std::cout << FGRN("OK\n");
 	else
 		std::cout << FRED("KO\n");
+	
+
+	// Test erase()
+	std::clock_t ft_erase = std::clock();
+	for (int i = 0; i != 100; i++)
+	{
+		ft_vector_int.erase(ft_vector_int.begin());
+	}
+	double ft_erase_diff = ( std::clock() - ft_erase ) / (double) CLOCKS_PER_SEC;
+
+	std::clock_t std_erase = std::clock();
+	for (int i = 0; i != 100; i++)
+	{
+		std_vector_int.erase(std_vector_int.begin());
+	}
+	double std_erase_diff = ( std::clock() - std_erase ) / (double) CLOCKS_PER_SEC;
+	
+	std::cout << "erase     = ";
+	int	erase_result = 0;
+	int	erase_i = 0;
+	while (erase_i < 1000)
+	{
+		if (ft_vector_int[erase_i] != std_vector_int[erase_i])
+			erase_result = 1;
+		erase_i++;
+	}
+	if (ft_vector_int.size() != std_vector_int.size() || erase_result != 0)
+		std::cout << FRED("KO");
+	else
+		std::cout << FGRN("OK");
+	std::cout << " | Duration : FT = " << ft_round(ft_erase_diff) << " | STD = " << ft_round(std_erase_diff) + 1 << " | Diff = " << (int)(ft_erase_diff / std_erase_diff) << " | ";
+	
+	if (std_erase_diff == 0 && ft_erase_diff <= 20)
+                std::cout << FGRN("OK\n");
+	else if (ft_erase_diff / std_erase_diff <= 20)
+                std::cout << FGRN("OK\n");
+        else
+                std::cout << FRED("KO\n");
+	
+	// Test insert()
+	std::clock_t ft_insert = std::clock();
+	for (int i = 0; i != 50; i++)
+	{
+		ft_vector_int.insert(ft_vector_int.begin(), 42);
+	}
+	double ft_insert_diff = ( std::clock() - ft_insert ) / (double) CLOCKS_PER_SEC;
+	
+	std::clock_t std_insert = std::clock();
+	for (int i = 0; i != 50; i++)
+	{
+		std_vector_int.insert(std_vector_int.begin(), 42);
+	}
+	double std_insert_diff = ( std::clock() - std_insert ) / (double) CLOCKS_PER_SEC;
+	
+	std::cout << "insert    = ";
+	int	insert_result = 0;
+	int	insert_i = 0;
+	while (insert_i < 1050)
+	{
+		if (ft_vector_int[insert_i] != std_vector_int[insert_i])
+			insert_result = 1;
+		insert_i++;
+	}
+	if (ft_vector_int.size() != std_vector_int.size())
+		std::cout << FRED("KO");
+	else
+		std::cout << FGRN("OK");
+	std::cout << " | Duration : FT = " << ft_round(ft_insert_diff) << " | STD = " << ft_round(std_insert_diff) + 1 << " | Diff = " << (int)(ft_round(ft_insert_diff / (std_insert_diff + 1))) << " | ";
+	
+	if (((int)std_insert_diff == 0 || (int)std_insert_diff == 1) && ft_insert_diff <= 20)
+                std::cout << FGRN("OK\n");
+	else if (ft_insert_diff / std_insert_diff <= 20)
+                std::cout << FGRN("OK\n");
+        else
+                std::cout << FRED("KO\n");
+	
+
+	// Test resize()
+	std::clock_t ft_resize = std::clock();
+	ft_vector_int.resize(2000);
+	double ft_resize_diff = ( std::clock() - ft_resize ) / (double) CLOCKS_PER_SEC;
+	
+	std::clock_t std_resize = std::clock();
+	std_vector_int.resize(2000);
+	double std_resize_diff = ( std::clock() - std_resize ) / (double) CLOCKS_PER_SEC;
+	
+	std::cout << "resize    = ";
+	if (ft_vector_int.size() != std_vector_int.size())
+		std::cout << FRED("KO");
+	else
+		std::cout << FGRN("OK");
+	std::cout << " | Duration : FT =  " << ft_round(ft_resize_diff) << " | STD = " << ft_round(std_resize_diff) << " | Diff =  " << (int)(ft_resize_diff / std_resize_diff) << " | ";
+	
+	if (std_resize_diff == 0 && ft_resize_diff <= 20)
+                std::cout << FGRN("OK\n");
+	else if (ft_resize_diff / std_resize_diff <= 20)
+                std::cout << FGRN("OK\n");
+        else
+                std::cout << FRED("KO\n");
+	
+	
+	
+	// Test pop_back()
+	std::clock_t ft_pop_back = std::clock();
+	int pop_back = 0;
+	while (pop_back < 1000)
+	{
+		ft_vector_int.pop_back();
+		pop_back++;
+	}
+	double ft_pop_back_diff = ( std::clock() - ft_pop_back ) / (double) CLOCKS_PER_SEC;
+	
+	std::clock_t std_pop_back = std::clock();
+	pop_back = 0;
+	while (pop_back < 1000)
+	{
+		std_vector_int.pop_back();
+		pop_back++;
+	}
+	double std_pop_back_diff = ( std::clock() - std_pop_back ) / (double) CLOCKS_PER_SEC;
+	
+	std::cout << "pop_back  = ";
+	if (ft_vector_int.size() != std_vector_int.size())
+		std::cout << FRED("KO");
+	else
+		std::cout << FGRN("OK");
+	std::cout << " | Duration : FT =  " << ft_round(ft_pop_back_diff) << " | STD = " << ft_round(std_pop_back_diff) << " | Diff =  " << (int)(ft_pop_back_diff / std_pop_back_diff) << " | ";
+	
+	if (std_pop_back_diff == 0 && ft_pop_back_diff <= 20)
+                std::cout << FGRN("OK\n");
+	else if (ft_pop_back_diff / std_pop_back_diff <= 20)
+                std::cout << FGRN("OK\n");
+        else
+                std::cout << FRED("KO\n");
+	
+	// Test swap()
+	ft::vector<int>		ft_vector_swap(ft_vector_int);
+	std::vector<int>	std_vector_swap(std_vector_int);
+
+	ft_vector_swap.resize(500);
+	std_vector_swap.resize(500);	
+	ft_vector_swap.insert(ft_vector_swap.begin(), 666);
+	std_vector_swap.insert(std_vector_swap.begin(), 666);
+	
+	std::clock_t ft_swap = std::clock();
+	ft_vector_int.swap(ft_vector_swap);
+	double ft_swap_diff = ( std::clock() - ft_swap ) / (double) CLOCKS_PER_SEC;
+	
+	std::clock_t std_swap = std::clock();
+	std_vector_int.swap(std_vector_swap);
+	double std_swap_diff = ( std::clock() - std_swap ) / (double) CLOCKS_PER_SEC;
+	
+	int swap_i = 0;
+	int swap_result = 0;
+	while (swap_i < 666)
+	{
+		if (ft_vector_int[swap_i] != std_vector_int[swap_i])
+			swap_result = 1;
+		swap_i++;
+	}
+	std::cout << "swap      = ";
+	if (swap_result != 0)
+                std::cout << FRED("KO");
+        else
+		std::cout << FGRN("OK");
+	std::cout << " | Duration : FT =  " << ft_round(ft_swap_diff) << " | STD = " << ft_round(std_swap_diff) << " | Diff =  ";
+	if ((int)(ft_swap_diff / std_swap_diff) <= 0)
+		std::cout << "0" << " | ";
+	else
+		std::cout << (int)(ft_swap_diff / std_swap_diff) << " | ";
+	if (std_swap_diff == 0 && ft_swap_diff <= 20)
+                std::cout << FGRN("OK\n");
+	else if (ft_swap_diff / std_swap_diff <= 20)
+                std::cout << FGRN("OK\n");
+        else
+                std::cout << FRED("KO\n");
+		
+	ft_vector_int.swap(ft_vector_swap);
+	std_vector_int.swap(std_vector_swap);
+
+	// Test clear()
+	std::clock_t ft_clear = std::clock();
+	ft_vector_int.clear();
+	double ft_clear_diff = ( std::clock() - ft_clear ) / (double) CLOCKS_PER_SEC;
+	
+	std::clock_t std_clear = std::clock();
+	std_vector_int.clear();
+	double std_clear_diff = ( std::clock() - std_clear ) / (double) CLOCKS_PER_SEC;
+
+	std::cout << "clear     = ";
+	if (ft_vector_int.size() != std_vector_int.size())
+		std::cout << FRED("KO");
+	else
+		std::cout << FGRN("OK");
+	std::cout << " | Duration : FT =  " << ft_round(ft_clear_diff) << " | STD = " << ft_round(std_clear_diff) << " | Diff =  " << (int)(ft_clear_diff / std_clear_diff) << " | ";
+	
+	if (std_clear_diff == 0 && ft_clear_diff <= 20)
+                std::cout << FGRN("OK\n");
+	else if (ft_clear_diff / std_clear_diff <= 20)
+                std::cout << FGRN("OK\n");
+        else
+                std::cout << FRED("KO\n");
 	
 	// Test operators
 	
@@ -122,190 +329,6 @@ void	ft_vector()
 	else
 		std::cout << FGRN("OK\n");
 
-	// Test erase()
-	auto ft_erase = high_resolution_clock::now();
-	for (int i = 0; i != 100; i++)
-	{
-		ft_vector_int.erase(ft_vector_int.begin());
-	}
-	auto ft_erase2 = high_resolution_clock::now();
-	auto ft_erase_diff = duration_cast<microseconds>(ft_erase2 - ft_erase);
-	
-	auto std_erase = high_resolution_clock::now();
-	for (int i = 0; i != 100; i++)
-	{
-		std_vector_int.erase(std_vector_int.begin());
-	}
-	auto std_erase2 = high_resolution_clock::now();
-	auto std_erase_diff = duration_cast<microseconds>(std_erase2 - std_erase);
-	
-	std::cout << "erase     = ";
-	int	erase_result = 0;
-	int	erase_i = 0;
-	while (erase_i < 1000)
-	{
-		if (ft_vector_int[erase_i] != std_vector_int[erase_i])
-			erase_result = 1;
-		erase_i++;
-	}
-	if (ft_vector_int.size() != std_vector_int.size() || erase_result != 0)
-		std::cout << FRED("KO");
-	else
-		std::cout << FGRN("OK");
-	std::cout << " | Duration : FT = " << ft_erase_diff.count() << " | STD = " << std_erase_diff.count() << " | Diff = " << float(ft_erase_diff.count()) / float(std_erase_diff.count()) << " | ";
-	
-	if (std_erase_diff.count() == 0 && ft_erase_diff.count() <= 20)
-                std::cout << FGRN("OK\n");
-	else if (ft_erase_diff.count() / std_erase_diff.count() <= 20)
-                std::cout << FGRN("OK\n");
-        else
-                std::cout << FRED("KO\n");
-	
-	// Test insert()
-	auto ft_insert = high_resolution_clock::now();
-	for (int i = 0; i != 500; i++)
-	{
-		ft_vector_int.insert(ft_vector_int.begin(), 42);
-	}
-	auto ft_insert2 = high_resolution_clock::now();
-	auto ft_insert_diff = duration_cast<microseconds>(ft_insert2 - ft_insert);
-	
-	auto std_insert = high_resolution_clock::now();
-	for (int i = 0; i != 500; i++)
-	{
-		std_vector_int.insert(std_vector_int.begin(), 42);
-	}
-	auto std_insert2 = high_resolution_clock::now();
-	auto std_insert_diff = duration_cast<microseconds>(std_insert2 - std_insert);
-	
-	std::cout << "insert    = ";
-	int	insert_result = 0;
-	int	insert_i = 0;
-	while (insert_i < 1500)
-	{
-		if (ft_vector_int[insert_i] != std_vector_int[insert_i])
-			insert_result = 1;
-		insert_i++;
-	}
-	if (ft_vector_int.size() != std_vector_int.size())
-		std::cout << FRED("KO");
-	else
-		std::cout << FGRN("OK");
-	std::cout << " | Duration : FT = " << ft_insert_diff.count() << " | STD = " << std_insert_diff.count() << " | Diff = " << float(ft_insert_diff.count()) / float(std_insert_diff.count()) << " | ";
-	
-	if (std_insert_diff.count() == 0 && ft_insert_diff.count() <= 20)
-                std::cout << FGRN("OK\n");
-	else if (ft_insert_diff.count() / std_insert_diff.count() <= 20)
-                std::cout << FGRN("OK\n");
-        else
-                std::cout << FRED("KO\n");
-	
-
-	// Test resize()
-	auto ft_resize = high_resolution_clock::now();
-	ft_vector_int.resize(2000);
-	auto ft_resize2 = high_resolution_clock::now();
-	auto ft_resize_diff = duration_cast<microseconds>(ft_resize2 - ft_resize);
-	
-	auto std_resize = high_resolution_clock::now();
-	std_vector_int.resize(2000);
-	auto std_resize2 = high_resolution_clock::now();
-	auto std_resize_diff = duration_cast<microseconds>(std_resize2 - std_resize);
-	
-	std::cout << "resize    = ";
-	if (ft_vector_int.size() != std_vector_int.size())
-		std::cout << FRED("KO");
-	else
-		std::cout << FGRN("OK");
-	std::cout << " | Duration : FT = " << ft_resize_diff.count() << " | STD = " << std_resize_diff.count() << " | Diff = " << float(ft_resize_diff.count()) / float(std_resize_diff.count()) << " | ";
-	
-	if (std_resize_diff.count() == 0 && ft_resize_diff.count() <= 20)
-                std::cout << FGRN("OK\n");
-	else if (ft_resize_diff.count() / std_resize_diff.count() <= 20)
-                std::cout << FGRN("OK\n");
-        else
-                std::cout << FRED("KO\n");
-	
-	
-	
-	// Test pop_back()
-	auto ft_pop_back = high_resolution_clock::now();
-	int pop_back = 0;
-	while (pop_back < 1000)
-	{
-		ft_vector_int.pop_back();
-		pop_back++;
-	}
-	auto ft_pop_back2 = high_resolution_clock::now();
-	auto ft_pop_back_diff = duration_cast<microseconds>(ft_pop_back2 - ft_pop_back);
-	
-	auto std_pop_back = high_resolution_clock::now();
-	pop_back = 0;
-	while (pop_back < 1000)
-	{
-		std_vector_int.pop_back();
-		pop_back++;
-	}
-	auto std_pop_back2 = high_resolution_clock::now();
-	auto std_pop_back_diff = duration_cast<microseconds>(std_pop_back2 - std_pop_back);
-	
-	std::cout << "pop_back  = ";
-	if (ft_vector_int.size() != std_vector_int.size())
-		std::cout << FRED("KO");
-	else
-		std::cout << FGRN("OK");
-	std::cout << " | Duration : FT = " << ft_pop_back_diff.count() << " | STD = " << std_pop_back_diff.count() << " | Diff = " << float(ft_pop_back_diff.count()) / float(std_pop_back_diff.count()) << " | ";
-	
-	if (std_pop_back_diff.count() == 0 && ft_pop_back_diff.count() <= 20)
-                std::cout << FGRN("OK\n");
-	else if (ft_pop_back_diff.count() / std_pop_back_diff.count() <= 20)
-                std::cout << FGRN("OK\n");
-        else
-                std::cout << FRED("KO\n");
-	
-	// Test swap()
-	ft::vector<int>		ft_vector_swap(ft_vector_int);
-	std::vector<int>	std_vector_swap(std_vector_int);
-
-	ft_vector_swap.resize(500);
-	std_vector_swap.resize(500);	
-	ft_vector_swap.insert(ft_vector_swap.begin(), 666);
-	std_vector_swap.insert(std_vector_swap.begin(), 666);
-	
-	auto ft_swap = high_resolution_clock::now();
-	ft_vector_int.swap(ft_vector_swap);
-	auto ft_swap2 = high_resolution_clock::now();
-	auto ft_swap_diff = duration_cast<microseconds>(ft_swap2 - ft_swap);
-	
-	auto std_swap = high_resolution_clock::now();
-	std_vector_int.swap(std_vector_swap);
-	auto std_swap2 = high_resolution_clock::now();
-	auto std_swap_diff = duration_cast<microseconds>(std_swap2 - std_swap);
-	
-	int swap_i = 0;
-	int swap_result = 0;
-	while (swap_i < 666)
-	{
-		if (ft_vector_int[swap_i] != std_vector_int[swap_i])
-			swap_result = 1;
-		swap_i++;
-	}
-	std::cout << "swap      = ";
-	if (swap_result != 0)
-                std::cout << FRED("KO");
-        else
-		std::cout << FGRN("OK");
-	std::cout << " | Duration : FT = " << ft_swap_diff.count() << " | STD = " << std_swap_diff.count() << " | Diff = " << float(ft_swap_diff.count()) / float(std_swap_diff.count()) << " | ";
-	if (std_swap_diff.count() == 0 && ft_swap_diff.count() <= 20)
-                std::cout << FGRN("OK\n");
-	else if (ft_swap_diff.count() / std_swap_diff.count() <= 20)
-                std::cout << FGRN("OK\n");
-        else
-                std::cout << FRED("KO\n");
-		
-	ft_vector_int.swap(ft_vector_swap);
-	std_vector_int.swap(std_vector_swap);
-
 	// Test capacity
 	int capacity_result = 0;
 	if (ft_vector_int.empty() != std_vector_int.empty())
@@ -349,32 +372,8 @@ void	ft_vector()
 		std::cout << FGRN("OK\n");
 	else
 		std::cout << FRED("KO\n");
-
-	// Test clear()
-	auto ft_clear = high_resolution_clock::now();
-	ft_vector_int.clear();
-	auto ft_clear2 = high_resolution_clock::now();
-	auto ft_clear_diff = duration_cast<microseconds>(ft_clear2 - ft_clear);
-	
-	auto std_clear = high_resolution_clock::now();
-	std_vector_int.clear();
-	auto std_clear2 = high_resolution_clock::now();
-	auto  std_clear_diff = duration_cast<microseconds>(std_clear2 - std_clear);
-
-	std::cout << "clear     = ";
-	if (ft_vector_int.size() != std_vector_int.size())
-		std::cout << FRED("KO");
-	else
-		std::cout << FGRN("OK");
-	std::cout << " | Duration : FT = " << ft_clear_diff.count() << " | STD = " << std_clear_diff.count() << " | Diff = " << float(ft_clear_diff.count()) / float(std_clear_diff.count()) << " | ";
-	
-	if (std_clear_diff.count() == 0 && ft_clear_diff.count() <= 20)
-                std::cout << FGRN("OK\n");
-	else if (ft_clear_diff.count() / std_clear_diff.count() <= 20)
-                std::cout << FGRN("OK\n");
-        else
-                std::cout << FRED("KO\n");
 }
+
 
 void	ft_map()
 {
@@ -386,23 +385,21 @@ void	ft_map()
 	std::cout << UNDL(BOLD(FBLU("\nMap"))) << std::endl << std::endl;
 
 	// Test  insert
-	auto ft_insert_map = high_resolution_clock::now();
-    	ft_map.insert({1, "one"});
-    	ft_map.insert({2, "two"});
-    	ft_map.insert({3, "three"});
-    	ft_map.insert({4, "four"});
-    	ft_map.insert({5, "five"});
-	auto ft_insert_map2 = high_resolution_clock::now();
-	auto ft_insert_map_diff = duration_cast<microseconds>(ft_insert_map2 - ft_insert_map);
+	std::clock_t ft_insert_map = std::clock();
+    	ft_map.insert(ft::pair<int, std::string>(1, "one"));
+    	ft_map.insert(ft::pair<int, std::string>(2, "two"));
+    	ft_map.insert(ft::pair<int, std::string>(3, "three"));
+    	ft_map.insert(ft::pair<int, std::string>(4, "four"));
+    	ft_map.insert(ft::pair<int, std::string>(5, "five"));
+	double ft_insert_map_diff = ( std::clock() - ft_insert_map ) / (double) CLOCKS_PER_SEC;
     	
-	auto std_insert_map = high_resolution_clock::now();
-	std_map.insert({1, "one"});
-    	std_map.insert({2, "two"});
-    	std_map.insert({3, "three"});
-    	std_map.insert({4, "four"});
-    	std_map.insert({5, "five"});
-	auto std_insert_map2 = high_resolution_clock::now();
-	auto std_insert_map_diff = duration_cast<microseconds>(std_insert_map2 - std_insert_map);
+	std::clock_t std_insert_map = std::clock();
+		std_map.insert(std::pair<int, std::string>(1, "one"));
+    	std_map.insert(std::pair<int, std::string>(2, "two"));
+    	std_map.insert(std::pair<int, std::string>(3, "three"));
+    	std_map.insert(std::pair<int, std::string>(4, "four"));
+    	std_map.insert(std::pair<int, std::string>(5, "five"));
+	double std_insert_map_diff = ( std::clock() - std_insert_map ) / (double) CLOCKS_PER_SEC;
 	
 	ft::map<int, std::string>::const_iterator ft_it = ft_map.begin();
 	
@@ -419,31 +416,29 @@ void	ft_map()
 	else
                 std::cout << FGRN("OK");
 	
-	std::cout << " | Duration : FT = " << ft_insert_map_diff.count() << " | STD = " << std_insert_map_diff.count() << " | Diff = " << float(ft_insert_map_diff.count()) / float(std_insert_map_diff.count()) << " | ";
+	std::cout << " | Duration : FT = " << ft_round(ft_insert_map_diff) << " | STD = " << ft_round(std_insert_map_diff) << " | Diff = " << (int)(ft_insert_map_diff / std_insert_map_diff) << " | ";
 	
-	if (std_insert_map_diff.count() == 0 && ft_insert_map_diff.count() <= 20)
+	if (std_insert_map_diff == 0 && ft_insert_map_diff <= 20)
                 std::cout << FGRN("OK\n");
-	else if (ft_insert_map_diff.count() / std_insert_map_diff.count() <= 20)
+	else if (ft_insert_map_diff / std_insert_map_diff <= 20)
                 std::cout << FGRN("OK\n");
         else
                 std::cout << FRED("KO\n");
 
 	// Test erase()
-	auto ft_erase_map = high_resolution_clock::now();
+	std::clock_t ft_erase_map = std::clock();
 	for (int i = 0; i != 2; i++)
 	{
 		ft_map.erase(ft_map.begin());
 	}
-	auto ft_erase_map2 = high_resolution_clock::now();
-	auto ft_erase_map_diff = duration_cast<microseconds>(ft_erase_map2 - ft_erase_map);
+	double ft_erase_map_diff = ( std::clock() - ft_erase_map ) / (double) CLOCKS_PER_SEC;
 	
-	auto std_erase_map = high_resolution_clock::now();
+	std::clock_t std_erase_map = std::clock();
 	for (int i = 0; i != 2; i++)
 	{
 		std_map.erase(std_map.begin());
 	}
-	auto std_erase_map2 = high_resolution_clock::now();
-	auto std_erase_map_diff = duration_cast<microseconds>(std_erase_map2 - std_erase_map);
+	double std_erase_map_diff = ( std::clock() - std_erase_map ) / (double) CLOCKS_PER_SEC;
 	
 	std::cout << "erase     = ";
 	int	erase_map_result = 0;
@@ -458,11 +453,11 @@ void	ft_map()
 		std::cout << FRED("KO");
 	else
 		std::cout << FGRN("OK");
-	std::cout << " | Duration : FT = " << ft_erase_map_diff.count() << " | STD = " << std_erase_map_diff.count() << " | Diff = " << float(ft_erase_map_diff.count()) / float(std_erase_map_diff.count()) << " | ";
+	std::cout << " | Duration : FT = " << ft_round(ft_erase_map_diff) << " | STD = " << ft_round(std_erase_map_diff) << " | Diff = " << (int)(ft_erase_map_diff / std_erase_map_diff) << " | ";
 	
-	if (std_erase_map_diff.count() == 0 && ft_erase_map_diff.count() <= 20)
+	if (std_erase_map_diff == 0 && ft_erase_map_diff <= 20)
                 std::cout << FGRN("OK\n");
-	else if (ft_erase_map_diff.count() / std_erase_map_diff.count() <= 20)
+	else if (ft_erase_map_diff / std_erase_map_diff <= 20)
                 std::cout << FGRN("OK\n");
         else
                 std::cout << FRED("KO\n");
@@ -471,20 +466,18 @@ void	ft_map()
 	ft::map<int, std::string>	ft_map_swap;
 	std::map<int, std::string>	std_map_swap;
 
-    	ft_map_swap.insert({42, "forthy-two"});
-    	ft_map_swap.insert({21, "twenty-one"});
-    	std_map_swap.insert({42, "forthy-two"});
-    	std_map_swap.insert({21, "twenty-one"});
+    	ft_map_swap.insert(ft::pair<int, std::string>(42, "forthy-two"));
+    	ft_map_swap.insert(ft::pair<int, std::string>(21, "twenty-one"));
+    	std_map_swap.insert(std::pair<int, std::string>(42, "forthy-two"));
+    	std_map_swap.insert(std::pair<int, std::string>(21, "twenty-one"));
 	
-	auto ft_swap_map = high_resolution_clock::now();
+	std::clock_t ft_swap_map = std::clock();
 	ft_map.swap(ft_map_swap);
-	auto ft_swap_map2 = high_resolution_clock::now();
-	auto ft_swap_map_diff = duration_cast<microseconds>(ft_swap_map2 - ft_swap_map);
+	double ft_swap_map_diff = ( std::clock() - ft_swap_map ) / (double) CLOCKS_PER_SEC;
 	
-	auto std_swap_map = high_resolution_clock::now();
+	std::clock_t std_swap_map = std::clock();
 	std_map.swap(std_map_swap);
-	auto std_swap_map2 = high_resolution_clock::now();
-	auto std_swap_map_diff = duration_cast<microseconds>(std_swap_map2 - std_swap_map);
+	double std_swap_map_diff = ( std::clock() - std_swap_map ) / (double) CLOCKS_PER_SEC;
 	
 	int swap_map_i = 0;
 	int swap_map_result = 0;
@@ -499,10 +492,14 @@ void	ft_map()
                 std::cout << FRED("KO");
         else
 		std::cout << FGRN("OK");
-	std::cout << " | Duration : FT = " << ft_swap_map_diff.count() << " | STD = " << std_swap_map_diff.count() << " | Diff = " << float(ft_swap_map_diff.count()) / float(std_swap_map_diff.count()) << " | ";
-	if (std_swap_map_diff.count() == 0 && ft_swap_map_diff.count() <= 20)
+	std::cout << " | Duration : FT = " << ft_round(ft_swap_map_diff) << " | STD = " << ft_round(std_swap_map_diff) << " | Diff = ";
+	if ((int)(ft_swap_map_diff / std_swap_map_diff) <= 0 || !isfinite((int)(ft_swap_map_diff / std_swap_map_diff)))
+		std::cout << "0" << " | ";
+	else
+		std::cout << ft_swap_map_diff / std_swap_map_diff << " | ";
+	if (std_swap_map_diff == 0 && ft_swap_map_diff <= 20)
                 std::cout << FGRN("OK\n");
-	else if (ft_swap_map_diff.count() / std_swap_map_diff.count() <= 20)
+	else if (ft_swap_map_diff / std_swap_map_diff <= 20)
                 std::cout << FGRN("OK\n");
         else
                 std::cout << FRED("KO\n");
@@ -511,52 +508,56 @@ void	ft_map()
 	std_map.swap(std_map_swap);
 
 	// Test count()
-	auto ft_count_map	= high_resolution_clock::now();
-	int	ft_count_return = ft_map.count(1);
-	auto ft_count_map2 = high_resolution_clock::now();
-	auto ft_count_map_diff = duration_cast<microseconds>(ft_count_map2 - ft_count_map);
+	std::clock_t ft_count_map = std::clock();
+	int	ft_return = ft_map.count(1);
+	double ft_count_map_diff = ( std::clock() - ft_count_map ) / (double) CLOCKS_PER_SEC;
 	
-	auto std_count_map = high_resolution_clock::now();
-	int	std_count_return = std_map.count(1);
-	auto std_count_map2 = high_resolution_clock::now();
-	auto  std_count_map_diff = duration_cast<microseconds>(std_count_map2 - std_count_map);
+	std::clock_t std_count_map = std::clock();
+	int	std_return = std_map.count(1);
+	double std_count_map_diff = ( std::clock() - std_count_map ) / (double) CLOCKS_PER_SEC;
 
 	std::cout << "count     = ";
-	if (ft_count_return != std_count_return)
+	if (ft_return != std_return)
 		std::cout << FRED("KO");
 	else
 		std::cout << FGRN("OK");
-	std::cout << " | Duration : FT = " << ft_count_map_diff.count() << " | STD = " << std_count_map_diff.count() << " | Diff = " << float(ft_count_map_diff.count()) / float(std_count_map_diff.count()) << " | ";
+	std::cout << " | Duration : FT = " << ft_round(ft_count_map_diff) << " | STD = " << ft_round(std_count_map_diff) << " | Diff = ";
+	if (isnan((int)(ft_count_map_diff / std_count_map_diff)) || isinf((int)(ft_count_map_diff / std_count_map_diff)) || (int)(ft_count_map_diff / std_count_map_diff) == -2147483648)
+	   std::cout << "0" << " | ";
+	else
+		std::cout << (int)(ft_count_map_diff / std_count_map_diff) << " | ";
 	
-	if (std_count_map_diff.count() == 0 && ft_count_map_diff.count() <= 20)
+	if (std_count_map_diff == 0 && ft_count_map_diff <= 20)
                 std::cout << FGRN("OK\n");
-	else if (ft_count_map_diff.count() / std_count_map_diff.count() <= 20)
+	else if (ft_count_map_diff / std_count_map_diff <= 20)
                 std::cout << FGRN("OK\n");
         else
                 std::cout << FRED("KO\n");
 	
 
 	// Test find()
-	auto ft_find_map	= high_resolution_clock::now();
+	std::clock_t ft_find_map = std::clock();
 	ft::map<int, std::string>::iterator	ft_find_iterator = ft_map.find(1);
-	auto ft_find_map2 = high_resolution_clock::now();
-	auto ft_find_map_diff = duration_cast<microseconds>(ft_find_map2 - ft_find_map);
+	double ft_find_map_diff = ( std::clock() - ft_find_map ) / (double) CLOCKS_PER_SEC;
 	
-	auto std_find_map = high_resolution_clock::now();
+	std::clock_t std_find_map = std::clock();
 	std::map<int, std::string>::iterator	std_find_iterator = std_map.find(1);
-	auto std_find_map2 = high_resolution_clock::now();
-	auto  std_find_map_diff = duration_cast<microseconds>(std_find_map2 - std_find_map);
+	double std_find_map_diff = ( std::clock() - std_find_map ) / (double) CLOCKS_PER_SEC;
 
 	std::cout << "find      = ";
 	if (ft_find_iterator->second != std_find_iterator->second)
 		std::cout << FRED("KO");
 	else
 		std::cout << FGRN("OK");
-	std::cout << " | Duration : FT = " << ft_find_map_diff.count() << " | STD = " << std_find_map_diff.count() << " | Diff = " << float(ft_find_map_diff.count()) / float(std_find_map_diff.count()) << " | ";
+	std::cout << " | Duration : FT = " << ft_round(ft_find_map_diff) << " | STD = " << ft_round(std_find_map_diff) << " | Diff = ";
+   if (isnan((int)(ft_find_map_diff / std_find_map_diff)) || (int)(ft_find_map_diff / std_find_map_diff)== -2147483648)
+	  std::cout << "0" << " | ";
+   else
+	   std::cout << (int)(ft_find_map_diff / std_find_map_diff) << " | ";
 	
-	if (std_find_map_diff.count() == 0 && ft_find_map_diff.count() <= 20)
+	if (std_find_map_diff == 0 && ft_find_map_diff <= 20)
                 std::cout << FGRN("OK\n");
-	else if (ft_find_map_diff.count() / std_find_map_diff.count() <= 20)
+	else if (ft_find_map_diff / std_find_map_diff <= 20)
                 std::cout << FGRN("OK\n");
         else
                 std::cout << FRED("KO\n");
@@ -619,6 +620,12 @@ void	ft_map()
 	else
 		std::cout << FGRN("OK\n");
 	std::cout << std::endl << std::endl;
+}
+
+float	ft_round(double var)
+{
+	float value = (int)(var * 100000 + .5);
+	return((float)value);
 }
 
 void	ft_banner()
